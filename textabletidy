@@ -1,7 +1,25 @@
 #!/usr/bin/env python
+"""
+textabletidy
 
-import sys
+Align the columns of TeX table, reading from STDIN or a named file and writing
+to STDOUT.
+
+This script identifies a row of a TeX table by looking for any line that has
+an unescaped ampersand and the TeX newline command '\\'. This script does not
+make any attempt to parse the preamble of the table to determine how many
+columns there are, it doesn't handle table rows that are split across lines,
+and it doesn't make any changes to lines that are not table rows.
+
+Written by Daniel Grady <d.c.grady@gmail.com> 2012-10-31
+"""
+
+# TODO Handle rows that don't have the right number of columns (like a row
+# that uses multirow) by just ignoring them. Maybe any row that doesn't have
+# the modal number of columns?
+
 import re
+import fileinput
 
 rawlines  = []
 rows      = []
@@ -14,16 +32,11 @@ newline  = re.compile(r'\\\\')
 # A line of text is a table row if it contains at least one unescaped
 # ampersand and the newline command '\\'. It does not have to end with the
 # newline command, because there may be for example '\hline' following that on
-# the same line of text. We could count the number of ampersands and make sure
-# it matches the table heading, but that's complicated. Instead just pack the
-# table cells starting from the newline and going backwards.
-
-# Handle unusual cases by just using 'try'; if something breaks then don't
-# change that line
+# the same line of text.
 
 istablerow = lambda line: unescamp.search(line) and newline.search(line)
 
-for line in sys.stdin:
+for line in fileinput.input():
 	rawlines.append(line)
 	if istablerow(line):
 		preline,postline = newline.split(line)
@@ -41,4 +54,4 @@ for line in rawlines:
 		postline = postlines.pop(0)
 		print ' & '.join(row) + r' \\ ' + postline
 	else:
-		print line
+		print line,
